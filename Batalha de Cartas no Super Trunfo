@@ -1,0 +1,159 @@
+#include <stdio.h>
+
+/*
+  SUPER TRUNFO — Nível Mestre
+  - População: unsigned long int
+  - Área (km²), PIB (em bilhões de R$): float
+  - Pontos turísticos: int
+  - Calcula densidade (hab/km²) e PIB per capita (R$ por pessoa)
+  - Super Poder = população + área + PIB + pontos + PIB per capita + (1/densidade)
+    (usar conversões de tipo para somar corretamente)
+  - Compara atributos: densidade (menor vence), demais (maior vence)
+*/
+
+typedef struct {
+    char estado;
+    char codigo[4];         // ex: "A01"
+    char nome[50];          // cidade (com espaços)
+    unsigned long populacao;
+    float area;             // km²
+    float pib;              // bilhões de R$
+    int pontosTuristicos;
+
+    // Derivados
+    float densidade;        // hab/km²
+    float pibPerCapita;     // R$
+    float superPoder;       // soma ponderada (ver enunciado)
+} Carta;
+
+// Lê uma carta do teclado
+void lerCarta(Carta* c, int indice) {
+    printf("Carta %d:\n", indice);
+    printf("Digite o estado (A-H): ");
+    scanf(" %c", &c->estado);
+
+    printf("Digite o codigo da carta (ex: A01): ");
+    scanf("%3s", c->codigo);
+
+    printf("Digite o nome da cidade: ");
+    scanf(" %[^\n]", c->nome);
+
+    printf("Digite a populacao (valor inteiro, sem pontos): ");
+    scanf("%lu", &c->populacao);
+
+    printf("Digite a area (em km2): ");
+    scanf("%f", &c->area);
+
+    printf("Digite o PIB (em bilhoes de reais): ");
+    scanf("%f", &c->pib);
+
+    printf("Digite o numero de pontos turisticos: ");
+    scanf("%d", &c->pontosTuristicos);
+
+    printf("\n");
+}
+
+// Calcula densidade, PIB per capita e Super Poder
+void calcularDerivados(Carta* c) {
+    // Densidade = população / área (evita divisão por zero)
+    double dens = 0.0;
+    if (c->area > 0.0f) {
+        dens = (double)c->populacao / (double)c->area;
+    }
+    c->densidade = (float)dens;
+
+    // PIB per capita = (PIB em bilhões -> reais) / população
+    double pibReais = (double)c->pib * 1000000000.0; // converte bilhões para reais
+    double ppc = 0.0;
+    if (c->populacao > 0UL) {
+        ppc = pibReais / (double)c->populacao;
+    }
+    c->pibPerCapita = (float)ppc;
+
+    // Inverso da densidade (quanto menor a densidade, maior o 1/densidade)
+    double invDens = 0.0;
+    if (c->densidade > 0.0f) {
+        invDens = 1.0 / (double)c->densidade;
+    }
+
+    // Super Poder: soma com conversões para evitar perda/estouro
+    double sp =
+        (double)c->populacao +
+        (double)c->area +
+        (double)c->pib +
+        (double)c->pontosTuristicos +
+        (double)c->pibPerCapita +
+        invDens;
+
+    c->superPoder = (float)sp;
+}
+
+// Imprime os dados completos da carta
+void imprimirCarta(const Carta* c, int indice) {
+    printf("Carta %d:\n", indice);
+    printf("Estado: %c\n", c->estado);
+    printf("Codigo: %s\n", c->codigo);
+    printf("Nome da Cidade: %s\n", c->nome);
+    printf("Populacao: %lu\n", c->populacao);
+    printf("Area: %.2f km2\n", c->area);
+    printf("PIB: %.2f bilhoes de reais\n", c->pib);
+    printf("Numero de Pontos Turisticos: %d\n", c->pontosTuristicos);
+    printf("Densidade Populacional: %.2f hab/km2\n", c->densidade);
+    printf("PIB per Capita: %.2f reais\n", c->pibPerCapita);
+    printf("Super Poder: %.2f\n", c->superPoder);
+    printf("\n");
+}
+
+// Imprime resultado "Atributo: Carta X venceu (Y)", onde Y = 1 se Carta 1 venceu; 0 caso contrário
+void imprimirComparacao(const char* rotulo, int carta1Vence) {
+    printf("%s: Carta %d venceu (%d)\n", rotulo, (carta1Vence ? 1 : 2), carta1Vence);
+}
+
+int main(void) {
+    Carta c1, c2;
+
+    // Leitura
+    lerCarta(&c1, 1);
+    lerCarta(&c2, 2);
+
+    // Cálculos
+    calcularDerivados(&c1);
+    calcularDerivados(&c2);
+
+    // Exibição das cartas (mantém funcionalidades anteriores)
+    imprimirCarta(&c1, 1);
+    imprimirCarta(&c2, 2);
+
+    // Comparações
+    printf("Comparacao de Cartas:\n\n");
+
+    // Populacao: maior vence
+    int vPop = (c1.populacao > c2.populacao) ? 1 : 0;
+    imprimirComparacao("Populacao", vPop);
+
+    // Area: maior vence
+    int vArea = (c1.area > c2.area) ? 1 : 0;
+    imprimirComparacao("Area", vArea);
+
+    // PIB: maior vence
+    int vPIB = (c1.pib > c2.pib) ? 1 : 0;
+    imprimirComparacao("PIB", vPIB);
+
+    // Pontos Turisticos: maior vence
+    int vPts = (c1.pontosTuristicos > c2.pontosTuristicos) ? 1 : 0;
+    imprimirComparacao("Pontos Turisticos", vPts);
+
+    // Densidade Populacional: MENOR vence
+    int vDens = (c1.densidade < c2.densidade) ? 1 : 0;
+    imprimirComparacao("Densidade Populacional", vDens);
+
+    // PIB per Capita: maior vence
+    int vPPC = (c1.pibPerCapita > c2.pibPerCapita) ? 1 : 0;
+    imprimirComparacao("PIB per Capita", vPPC);
+
+    // Super Poder: maior vence
+    int vSP = (c1.superPoder > c2.superPoder) ? 1 : 0;
+    imprimirComparacao("Super Poder", vSP);
+
+    return 0;
+}
